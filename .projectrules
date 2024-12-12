@@ -1,0 +1,80 @@
+# Movie Assistent Project Rules
+
+You are an expert in modern web development with focus on:
+- Next.js 14 App Router
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- TailwindCSS
+- OpenAI Integration
+- Authentication (NextAuth.js)
+
+## Project Structure
+/src
+  /app
+    /api        # API routes
+    /auth       # Authentication related components
+    /components # Reusable React components
+    /lib        # Utilities, hooks, and contexts
+    /styles     # Global styles and Tailwind config
+  /prisma      # Database schema and migrations
+  /public      # Static assets
+  /docs        # Project documentation
+
+## Design System
+- Professional dark theme optimized for film industry
+- Color Palette:
+  - Primary: Deep slate (#1a1a1a)
+  - Secondary: Professional blue (#2563eb)
+  - Accent: Gold (#C6A55C)
+- Typography:
+  - Headers: Inter
+  - Body: SF Pro Display
+- Responsive design with mobile-first approach
+- Smooth transitions and animations
+- Accessibility compliance
+
+## Important Notice
+- No design or content changes are allowed without explicit permission from the project owner
+- This includes changes to:
+  - UI components
+  - Color schemes
+  - Typography
+  - Content structure
+  - Text content
+  - Asset files
+
+## Development Rules
+1. Follow Next.js 14 best practices for:
+   - Server Components
+   - Data Fetching
+   - Route Handlers
+   - Server Actions
+
+2. Database:
+   - Use Prisma as ORM
+   - Follow the defined schema in docs/database-model.md
+   - Implement proper error handling
+   - Ensure GDPR compliance
+
+3. Authentication:
+   - Implement role-based access control
+   - Secure API routes
+   - Handle user sessions properly
+
+4. AI Integration:
+   - Use OpenAI for script analysis
+   - Implement streaming responses
+   - Handle rate limiting
+
+5. Code Quality:
+   - TypeScript strict mode
+   - ESLint + Prettier configuration
+   - Component documentation
+   - Unit tests for critical functions
+
+6. Security:
+   - Environment variables validation
+   - Input sanitization
+   - CSRF protection
+   - Rate limiting

@@ -1,0 +1,210 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: rgb(245, 158, 11);
+  --background: #0A0A0A;
+  --text: rgb(255, 255, 255);
+  --gold-gradient: linear-gradient(45deg, 
+    #85754E 0%, 
+    #C6A55C 20%, 
+    #E5CF7E 50%, 
+    #C6A55C 80%, 
+    #85754E 100%
+  );
+}
+
+@layer base {
+  body {
+    @apply bg-[#0A0A0A] text-white antialiased;
+    overflow-y: scroll;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply relative bg-gradient-to-r from-[#85754E] via-[#C6A55C] to-[#85754E] 
+      text-black font-medium rounded-md
+      transition-all duration-200
+      focus:outline-none focus:ring-2 focus:ring-[#C6A55C]
+      disabled:opacity-50
+      overflow-hidden;
+  }
+
+  .btn-primary::after {
+    @apply content-[''] absolute inset-0
+      bg-gradient-to-r from-white/0 via-white/20 to-white/0
+      translate-x-[-100%] transition-transform duration-1000;
+  }
+
+  .btn-primary:hover::after {
+    @apply translate-x-[100%];
+  }
+
+  .btn-secondary {
+    @apply relative border border-[#C6A55C] text-[#C6A55C]
+      font-medium rounded-md bg-transparent
+      transition-all duration-200
+      hover:bg-[#C6A55C]/10
+      focus:outline-none focus:ring-2 focus:ring-[#C6A55C]
+      disabled:opacity-50
+      overflow-hidden;
+  }
+
+  .btn-secondary::after {
+    @apply content-[''] absolute inset-0
+      bg-gradient-to-r from-[#C6A55C]/0 via-white/20 to-[#C6A55C]/0
+      translate-x-[-100%] transition-transform duration-1000;
+  }
+
+  .btn-secondary:hover::after {
+    @apply translate-x-[100%];
+  }
+
+  .text-gold-gradient {
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .btn-modal {
+    @apply w-full py-3 px-4 bg-gradient-to-r from-[#C6A55C] to-[#E9D5A0] 
+      hover:from-[#D4B56A] hover:to-[#F7E3AE] 
+      text-black font-medium rounded-lg
+      transition-all duration-200
+      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C6A55C]
+      disabled:opacity-50;
+  }
+}
+
+/* Cinematic gradients */
+.bg-gradient-cinematic {
+  background: linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%);
+}
+
+/* Gold text effect */
+.text-gold {
+  @apply bg-gradient-to-r from-amber-200 to-yellow-500 text-transparent bg-clip-text;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s infinite;
+}
+
+/* Update cinematic gradient */
+.bg-gradient-cinematic {
+  background: linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%);
+}
+
+/* Add new styles for auth pages */
+.auth-layout {
+  @apply min-h-screen bg-[#0A0A0A];
+}
+
+.auth-container {
+  @apply max-w-md mx-auto p-6 bg-[#111111] rounded-xl border border-[#222222];
+}
+
+.auth-input {
+  @apply w-full px-4 py-2 bg-[#0A0A0A] border border-[#222222] rounded-lg text-white focus:border-[#C6A55C] focus:ring-1 focus:ring-[#C6A55C] transition;
+}
+
+.auth-label {
+  @apply block text-sm font-medium text-[#C6A55C] mb-2;
+}
+
+@keyframes modalShimmer {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  20% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@font-face {
+  font-family: 'August';
+  src: url('/fonts/August-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+.font-august {
+  font-family: 'August', sans-serif;
+}
+
+/* Entferne Fokus-Outline und Ring für alle interaktiven Elemente */
+button, 
+input[type="button"], 
+input[type="submit"],
+input[type="reset"],
+a {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus,
+input[type="button"]:focus,
+input[type="submit"]:focus,
+input[type="reset"]:focus,
+a:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+*:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Verstecke Scrollbalken für alle Elemente */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Verstecke Scrollbalken für Webkit-Browser (Chrome, Safari) */
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Globale Styles */
+body {
+  @apply bg-[#141414] text-white;
+  font-family: 'Inter', sans-serif;
+}
