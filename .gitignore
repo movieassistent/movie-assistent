@@ -47,6 +47,7 @@ logs
 *.key
 *.pem
 *.cert
+/docs/
 
 # vercel
 .vercel
@@ -59,6 +60,7 @@ logs
 # Project specific
 /archiv/
 /docs/
+/docs/definition.txt
 
 # Documentation
 !docs/
