@@ -1,27 +1,27 @@
 'use client'
 
-import { useState } from 'react'
-import DashboardSidebar from '../dashboard/DashboardSidebar'
+import { useSettings } from '@/providers/SettingsProvider'
 
-export default function ClientLayout({
-  children,
-}: {
+interface ClientLayoutProps {
   children: React.ReactNode
-}) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+}
+
+export default function ClientLayout({ children }: ClientLayoutProps) {
+  const { settings } = useSettings()
+
+  const mainClassName = `
+    flex-1 
+    ${settings.sidebarPosition === 'oben' ? 'mt-[52px]' : ''}
+    ${settings.sidebarPosition === 'unten' ? 'mb-[52px]' : ''}
+    ${settings.sidebarPosition === 'links' ? `ml-[${settings.sidebarCollapsed ? '60px' : '192px'}]` : ''}
+    ${settings.sidebarPosition === 'rechts' ? `mr-[${settings.sidebarCollapsed ? '60px' : '192px'}]` : ''}
+  `
 
   return (
-    <div className="flex min-h-screen bg-[#0D0D0D]">
-      <DashboardSidebar onCollapse={setIsCollapsed} />
-      <main 
-        className={`flex-1 transition-all duration-500 ease-in-out ${
-          isCollapsed ? 'ml-[56px]' : 'ml-[188px]'
-        } mr-0 mt-8`}
-      >
-        <div className="p-6">
-          {children}
-        </div>
+    <div className="min-h-screen flex">
+      <main className={mainClassName}>
+        {children}
       </main>
     </div>
   )
-}
+} 

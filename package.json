@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "set NODE_NO_WARNINGS=1 && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -22,7 +22,6 @@
     "@trpc/client": "^10.45.2",
     "@trpc/react-query": "^10.45.2",
     "@trpc/server": "^10.45.2",
-    "@types/pg": "^8.11.10",
     "@types/react-datepicker": "^6.2.0",
     "bcryptjs": "^2.4.3",
     "date-fns": "^4.1.0",
@@ -32,6 +31,7 @@
     "next-auth": "latest",
     "openai": "^4.76.0",
     "pg": "^8.13.1",
+    "prisma": "4.16.2",
     "react": "latest",
     "react-beautiful-dnd": "^13.1.1",
     "react-datepicker": "^7.5.0",
@@ -42,12 +42,13 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.2",
     "autoprefixer": "latest",
+    "cross-env": "^7.0.3",
     "postcss": "latest",
-    "prisma": "4.16.2",
     "tailwindcss": "latest",
     "typescript": "latest"
   }

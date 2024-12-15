@@ -23,7 +23,17 @@ async function createAdmin() {
         data: {
           name: 'Admin',
           password: hashedPassword,
-          role: 'ADMIN',
+          role: 'SUPERADMIN',
+          settings: {
+            create: {
+              sidebarPosition: 'links',
+              sidebarCollapsed: false,
+              startPage: 'dashboard',
+              lastVisitedPath: '/dashboard',
+              theme: 'dark',
+              language: 'de'
+            }
+          }
         },
       })
 
@@ -47,6 +57,8 @@ async function createAdmin() {
   } catch (error) {
     console.error('Fehler beim Erstellen des Admin-Users:', error)
     process.exit(1)
+  } finally {
+    await prisma.$disconnect()
   }
 }
 

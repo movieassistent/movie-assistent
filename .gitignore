@@ -56,7 +56,11 @@ logs
 .config/
 .cache/
 
+# Project specific
+/archiv/
+/docs/
+
 # Documentation
 !docs/
 !docs/**/*.md
-!docs/conversations/ 
+!docs/conversations/

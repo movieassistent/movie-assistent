@@ -9,17 +9,17 @@ generator client {
 }
 
 model UserSettings {
-  id              String    @id @default(cuid())
-  userId          String    @unique
-  user            User      @relation(fields: [userId], references: [id])
-  theme           String    @default("movie assistent")
-  sidebarPosition String    @default("links")
-  startPage       String    @default("dashboard")
-  notifications   Json      @default("{\"email\":false,\"push\":false}")
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  @@map("user_settings")
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  sidebarPosition String   @default("links")
+  sidebarCollapsed Boolean @default(false)
+  startPage       String   @default("")
+  lastVisitedPath String   @default("/dashboard")
+  theme           String   @default("dark")
+  language        String   @default("de")
+  displayMode     String   @default("window")
+  updatedAt       DateTime @updatedAt
 }
 
 model User {

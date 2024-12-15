@@ -1,52 +1,29 @@
 'use client'
 
-import { useState } from 'react'
-import { Header } from '../components/landing/Header'
-import { HeroSection } from '../components/landing/HeroSection'
-import { FeatureSection } from '../components/landing/FeatureSection'
-import { Footer } from '../components/landing/Footer'
-import AuthModal from '../components/auth/AuthModal'
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 
-export default function Home() {
-  const [showLoginModal, setShowLoginModal] = useState(false)
-  const [showRegisterModal, setShowRegisterModal] = useState(false)
-
-  const handleSwitchToRegister = () => {
-    setShowLoginModal(false)
-    setTimeout(() => {
-      setShowRegisterModal(true)
-    }, 100)
-  }
-
-  const handleSwitchToLogin = () => {
-    setShowRegisterModal(false)
-    setTimeout(() => {
-      setShowLoginModal(true)
-    }, 100)
-  }
-
-  return (
-    <div className="min-h-screen bg-[#141414]">
-      <Header 
-        onLoginClick={() => setShowLoginModal(true)}
-        onRegisterClick={() => setShowRegisterModal(true)}
-      />
-      <HeroSection />
-      <FeatureSection />
-      <Footer />
-
-      <AuthModal 
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        initialView="login"
-        onSwitchToRegister={handleSwitchToRegister}
-      />
-      <AuthModal 
-        isOpen={showRegisterModal}
-        onClose={() => setShowRegisterModal(false)}
-        initialView="register"
-        onSwitchToLogin={handleSwitchToLogin}
-      />
+// Dynamischer Import der LandingPage
+const LandingPage = dynamic(() => import('@/components/landing/LandingPage'), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen bg-[#141414] flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#C6A55C]" />
     </div>
-  )
+  ),
+})
+
+export default function Page() {
+  const searchParams = useSearchParams()
+  const [showLogin, setShowLogin] = useState(false)
+
+  useEffect(() => {
+    const shouldShowLogin = searchParams.get('showLogin') === 'true'
+    if (shouldShowLogin) {
+      setShowLogin(true)
+    }
+  }, [searchParams])
+
+  return <LandingPage initialShowLogin={showLogin} />
 }

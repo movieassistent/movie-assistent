@@ -1,23 +1,10 @@
-export type Theme = 'movie' | 'dark' | 'light' | 'gray'
-export type StartPage = 'lastVisited' | 'dashboard'
-export type SidebarPosition = 'left' | 'right' | 'top' | 'bottom'
-
 export interface UserSettings {
-  theme: Theme
-  sidebarPosition: SidebarPosition
+  sidebarPosition: 'oben' | 'unten' | 'links' | 'rechts'
   sidebarCollapsed: boolean
-  startPage: StartPage
-  defaultProjectId: string | null
+  startPage: 'dashboard' | 'lastVisited' | 'specific'
   lastVisitedPath: string
-  testMode: boolean
-}
-
-export const DEFAULT_SETTINGS: UserSettings = {
-  theme: 'movie',
-  sidebarPosition: 'left',
-  sidebarCollapsed: false,
-  startPage: 'dashboard',
-  defaultProjectId: null,
-  lastVisitedPath: '/dashboard',
-  testMode: false
+  theme: 'light' | 'dark'
+  language: 'de' | 'en'
+  displayMode: 'fullscreen' | 'window'
+  initialized: boolean
 }
