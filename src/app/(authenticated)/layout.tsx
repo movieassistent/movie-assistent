@@ -28,6 +28,19 @@ function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   const [showContent, setShowContent] = useState(false)
   const previousPathRef = useRef(pathname)
 
+  // F5 Handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+        e.preventDefault()
+        router.refresh()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown, true)
+    return () => window.removeEventListener('keydown', handleKeyDown, true)
+  }, [router])
+
+  // Initialisierung der Settings
   useEffect(() => {
     const initSettings = async () => {
       if (session?.user?.email && !settingsLoaded.current) {
