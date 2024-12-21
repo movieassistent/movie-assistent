@@ -1,0 +1,2 @@
+1|<html lang="de" className="h-full select-none">
+2|  <body className={`${inter.className} h-full select-none`}> 

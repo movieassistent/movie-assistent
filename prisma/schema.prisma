@@ -1,11 +1,11 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 model UserSettings {
@@ -31,6 +31,9 @@ model User {
   settings      UserSettings?
   accounts      Account[]
   sessions      Session[]
+  projects      Project[]    @relation("ProjectOwner")
+  appIdeas      AppIdea[]
+  apiKeys       ApiKey[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 }
@@ -77,4 +80,102 @@ enum Role {
   USER
   ADMIN
   SUPERADMIN
+}
+
+enum ProjectStatus {
+  IN_PLANNING
+  ACTIVE
+  COMPLETED
+  ON_HOLD
+  CANCELLED
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  genre       String
+  status      ProjectStatus @default(IN_PLANNING)
+  ownerId     String
+  owner       User          @relation("ProjectOwner", fields: [ownerId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([ownerId])
+}
+
+enum AppIdeaStatus {
+  SUBMITTED
+  ACCEPTED
+  IN_PROGRESS
+  DONE
+  REJECTED
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+model AppIdea {
+  id            String        @id @default(cuid())
+  title         String
+  description   String
+  status        AppIdeaStatus @default(SUBMITTED)
+  priority      Int          @default(3)
+  visibility    Visibility    @default(PUBLIC)
+  category      String?
+  order         Int          @default(0)
+  progress      Int          @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  implementedAt DateTime?
+  createdById   String
+  createdBy     User          @relation(fields: [createdById], references: [id])
+  aiTasks       String[]      @default([])
+  subtasks      Subtask[]
+
+  @@index([createdById])
+  @@index([order])
+  @@index([visibility])
+  @@index([status])
+}
+
+model Subtask {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  aiPrompt      String?
+  completed     Boolean   @default(false)
+  order         Int
+  isAiGenerated Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  idea          AppIdea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  ideaId        String
+  parent        Subtask?  @relation("SubtaskToSubtask", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId      String?
+  children      Subtask[] @relation("SubtaskToSubtask")
+  progress      Float     @default(0)
+
+  @@index([ideaId])
+  @@index([parentId])
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  provider    String    // e.g., 'openai', 'anthropic'
+  key         String
+  isActive    Boolean   @default(true)
+  balance     Float?    // Optional balance tracking
+  lastUsed    DateTime?
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([provider])
 }

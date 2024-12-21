@@ -1,53 +1,37 @@
+import { prisma } from '@/lib/db'
 import { hash } from 'bcryptjs'
-import { prisma } from '../src/lib/db'
 
 async function createSuperAdmin() {
   try {
-    // Prüfe ob SuperAdmin-Email bereits existiert
-    const existingEmail = await prisma.email.findUnique({
-      where: { email: 'admin@movieassistent.com' }
-    })
-
-    if (existingEmail) {
-      console.log('SuperAdmin existiert bereits.')
-      return
-    }
-
     // Hash das Passwort
-    const hashedPassword = await hash('MovieAdmin123!', 12)
+    const hashedPassword = await hash('admin', 10)
 
-    // Erstelle SuperAdmin und Email in einer Transaktion
-    const superAdmin = await prisma.$transaction(async (prisma) => {
-      // Erstelle den User
-      const user = await prisma.user.create({
-        data: {
-          name: 'SuperAdmin',
-          password: hashedPassword,
-          role: 'SUPERADMIN',
-        },
-      })
-
-      // Erstelle die primäre Email
-      await prisma.email.create({
-        data: {
-          email: 'admin@movieassistent.com',
-          userId: user.id,
-          primary: true,
-          verified: true,
-        },
-      })
-
-      return user
+    // Erstelle den Admin-User
+    const admin = await prisma.user.create({
+      data: {
+        name: 'Administrator',
+        password: hashedPassword,
+        role: 'SUPERADMIN',
+        emails: {
+          create: {
+            email: 'admin@movieassistent.com',
+            primary: true,
+            verified: true
+          }
+        }
+      }
     })
 
-    console.log('SuperAdmin wurde erfolgreich erstellt!')
-    console.log('Email: admin@movieassistent.com')
-    console.log('Passwort: MovieAdmin123!')
-    console.log('Rolle: SUPERADMIN')
+    console.log('Superadmin wurde erfolgreich erstellt:', {
+      id: admin.id,
+      name: admin.name,
+      role: admin.role
+    })
 
   } catch (error) {
-    console.error('Fehler beim Erstellen des SuperAdmin:', error)
-    process.exit(1)
+    console.error('Fehler beim Erstellen des Superadmins:', error)
+  } finally {
+    await prisma.$disconnect()
   }
 }
 

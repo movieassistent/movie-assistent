@@ -6,10 +6,12 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { useSettings } from '@/providers/SettingsProvider'
+import { useSession } from 'next-auth/react'
 import { 
   LayoutGrid, Film, Calendar, Users, FileText,
   Clock as ClockIcon, Bell, Settings, User,
-  LogOut, ChevronLeft, Home, FolderOpen
+  LogOut, ChevronLeft, Home, FolderOpen,
+  Lightbulb
 } from 'lucide-react'
 import Clock from '../shared/Clock'
 
@@ -17,6 +19,7 @@ interface NavItem {
   name: string
   href: string
   icon: React.ReactNode
+  role?: string
 }
 
 // Konstanten am Anfang der Datei definieren
@@ -31,6 +34,7 @@ export const mainNavItems: NavItem[] = [
   { name: 'Drehbücher', href: '/scripts', icon: <FileText className="w-5 h-5" /> },
   { name: 'Zeitplan', href: '/schedule', icon: <ClockIcon className="w-5 h-5" /> },
   { name: 'Ankündigungen', href: '/announcements', icon: <Bell className="w-5 h-5" /> },
+  { name: 'Entwicklung', href: '/entwicklung', icon: <Lightbulb className="w-5 h-5" /> },
   { name: 'Einstellungen', href: '/dashboard/settings', icon: <Settings className="w-5 h-5" /> },
 ]
 
@@ -95,11 +99,17 @@ const NavItem = ({ item, isCollapsed, isActive, position }: {
 }
 
 export default function MainSidebar({}: MainSidebarProps) {
+  const { data: session } = useSession()
   const { settings, updateSettings, isLoading } = useSettings()
   const pathname = usePathname()
 
   // Warte auf das Laden der Einstellungen
   if (isLoading) return null
+
+  // Filtere die Navigation basierend auf der Rolle
+  const filteredNavItems = mainNavItems.filter(item => 
+    !item.role || item.role === session?.user?.role
+  )
 
   const position = settings.sidebarPosition as SidebarPosition
   const isCollapsed = settings.sidebarCollapsed
@@ -168,7 +178,7 @@ export default function MainSidebar({}: MainSidebarProps) {
               flex items-center
               ${isCollapsed ? 'space-x-4' : 'space-x-8'}  // Halbierter Abstand im Collapsed-Zustand
             `}>
-              {mainNavItems.map((item) => (
+              {filteredNavItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -274,7 +284,7 @@ export default function MainSidebar({}: MainSidebarProps) {
 
         {/* Navigation mit Tooltips */}
         <div className="flex-1 py-4 px-2">
-          {mainNavItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <NavItem
               key={item.href}
               item={item}

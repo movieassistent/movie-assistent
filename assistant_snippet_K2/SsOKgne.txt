@@ -1,0 +1,20 @@
+1|model Subtask {
+2|  id            String    @id @default(cuid())
+3|  title         String
+4|  description   String?
+5|  aiPrompt      String?
+6|  completed     Boolean   @default(false)
+7|  order         Int
+8|  isAiGenerated Boolean   @default(false)
+9|  createdAt     DateTime  @default(now())
+10|  updatedAt     DateTime  @updatedAt
+11|  idea          AppIdea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+12|  ideaId        String
+13|  parent        Subtask?  @relation("SubtaskToSubtask", fields: [parentId], references: [id], onDelete: Cascade)
+14|  parentId      String?
+15|  children      Subtask[] @relation("SubtaskToSubtask")
+16|  progress      Float     @default(0)
+17|
+18|  @@index([ideaId])
+19|  @@index([parentId])
+20|} 

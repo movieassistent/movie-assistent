@@ -1,11 +1,17 @@
 import { NextAuthOptions } from 'next-auth'
-import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { prisma } from './db'
+import { PrismaAdapter } from '@next-auth/prisma-adapter'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
+  session: {
+    strategy: 'jwt'
+  },
+  pages: {
+    signIn: '/login'
+  },
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -15,61 +21,65 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null
+          throw new Error('Ungültige Anmeldedaten')
         }
 
-        const email = await prisma.email.findUnique({
-          where: { email: credentials.email },
-          include: { user: true }
+        const user = await prisma.user.findFirst({
+          where: {
+            emails: {
+              some: {
+                email: credentials.email,
+                primary: true
+              }
+            }
+          },
+          include: {
+            emails: true
+          }
         })
 
-        if (!email?.user || !email.user.password) {
-          return null
+        if (!user || !user.password) {
+          throw new Error('Ungültige Anmeldedaten')
         }
 
-        const passwordMatch = await bcrypt.compare(
+        const isCorrectPassword = await bcrypt.compare(
           credentials.password,
-          email.user.password
+          user.password
         )
 
-        if (!passwordMatch) {
-          return null
+        if (!isCorrectPassword) {
+          throw new Error('Ungültige Anmeldedaten')
         }
 
         return {
-          id: email.user.id,
-          email: email.email,
-          name: email.user.name,
-          role: email.user.role
+          id: user.id,
+          name: user.name,
+          email: user.emails.find(e => e.primary)?.email,
+          role: user.role
         }
       }
     })
   ],
-  session: {
-    strategy: 'jwt',
-    maxAge: 15 * 60, // 15 Minuten in Sekunden
-  },
-  pages: {
-    signIn: '/',
-    signOut: '/',
-    error: '/'
-  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.role = user.role
+        return {
+          ...token,
+          id: user.id,
+          role: user.role
+        }
       }
       return token
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string
-        session.user.role = token.role as string
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: token.id,
+          role: token.role
+        }
       }
-      return session
     }
-  },
-  debug: false,
-  secret: process.env.NEXTAUTH_SECRET
+  }
 } 

@@ -9,17 +9,28 @@ interface ClientLayoutProps {
 export default function ClientLayout({ children }: ClientLayoutProps) {
   const { settings } = useSettings()
 
-  const mainClassName = `
-    flex-1 
-    ${settings.sidebarPosition === 'oben' ? 'mt-[52px]' : ''}
-    ${settings.sidebarPosition === 'unten' ? 'mb-[52px]' : ''}
-    ${settings.sidebarPosition === 'links' ? `ml-[${settings.sidebarCollapsed ? '60px' : '192px'}]` : ''}
-    ${settings.sidebarPosition === 'rechts' ? `mr-[${settings.sidebarCollapsed ? '60px' : '192px'}]` : ''}
-  `
+  if (!settings) {
+    return <div>Lade Einstellungen...</div>
+  }
+
+  const sidebarWidth = settings.sidebarCollapsed ? 60 : 192
+  const containerStyle = {
+    width: settings.sidebarPosition === 'links' || settings.sidebarPosition === 'rechts' 
+      ? `calc(100% - ${sidebarWidth + 10}px)`
+      : '100%',
+    marginLeft: settings.sidebarPosition === 'links' ? `${sidebarWidth}px` : undefined,
+    marginRight: settings.sidebarPosition === 'rechts' ? `${sidebarWidth}px` : undefined,
+    marginTop: settings.sidebarPosition === 'oben' ? '52px' : undefined,
+    marginBottom: settings.sidebarPosition === 'unten' ? '52px' : undefined,
+    paddingLeft: '10px',
+    paddingRight: '10px',
+    paddingBottom: '10px',
+    paddingTop: settings.sidebarPosition === 'oben' || settings.sidebarPosition === 'unten' ? '10px' : '0'
+  }
 
   return (
     <div className="min-h-screen flex">
-      <main className={mainClassName}>
+      <main style={containerStyle}>
         {children}
       </main>
     </div>

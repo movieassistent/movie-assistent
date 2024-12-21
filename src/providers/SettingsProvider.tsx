@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import type { UserSettings } from '@/types/settings'
 
 interface SettingsContextType {
@@ -35,16 +35,25 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         const data = await response.json()
         console.log('Settings von API erhalten:', data)
         if (data) {
-          setSettings({ ...data, initialized: true })
+          setSettings({ ...defaultSettings, ...data, initialized: true })
           return data
         }
+      } else {
+        console.log('Keine Settings gefunden, verwende Defaults')
+        setSettings({ ...defaultSettings, initialized: true })
       }
     } catch (error) {
       console.error('Fehler beim Laden der Einstellungen:', error)
+      setSettings({ ...defaultSettings, initialized: true })
     } finally {
       setIsLoading(false)
     }
   }, [])
+
+  // Lade Settings beim ersten Mounten
+  useEffect(() => {
+    loadSettings()
+  }, [loadSettings])
 
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
     try {

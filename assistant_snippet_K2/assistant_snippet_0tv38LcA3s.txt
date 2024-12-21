@@ -1,0 +1,20 @@
+'use client'
+
+import { SessionProvider } from 'next-auth/react'
+import { LanguageProvider } from '@/providers/LanguageProvider'
+import { SettingsProvider } from '@/providers/SettingsProvider'
+import { ThemeProvider } from '@/providers/ThemeProvider'
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <SessionProvider>
+      <LanguageProvider>
+        <SettingsProvider>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
+        </SettingsProvider>
+      </LanguageProvider>
+    </SessionProvider>
+  )
+} 

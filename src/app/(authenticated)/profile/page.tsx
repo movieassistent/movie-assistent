@@ -5,28 +5,75 @@ import { useSession } from 'next-auth/react'
 import { useSettings } from '@/providers/SettingsProvider'
 import { useRouter } from 'next/navigation'
 import { mainNavItems } from '@/components/layout/MainSidebar'
+import { ExternalLink, Eye, EyeOff, Plus, Trash2 } from 'lucide-react'
+
+interface ApiKey {
+  id: string
+  provider: string
+  key: string
+  isActive: boolean
+  balance?: number | null
+  lastUsed?: Date | null
+  createdAt: Date
+  updatedAt: Date
+}
 
 export default function ProfilePage() {
   const { data: session, update: updateSession } = useSession()
   const { settings, updateSettings } = useSettings()
   const router = useRouter()
   const [projects, setProjects] = useState<Array<{ id: string, name: string }>>([])
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
+  const [showKeys, setShowKeys] = useState<Record<string, boolean>>({})
+  const [newKey, setNewKey] = useState({ provider: 'openai', key: '' })
+  const [loading, setLoading] = useState(true)
 
-  // Lade Projekte beim ersten Render
+  const providerLinks = {
+    openai: 'https://platform.openai.com/api-keys',
+    anthropic: 'https://console.anthropic.com/account/keys'
+  }
+
+  // Lade Projekte und API Keys beim ersten Render
   useEffect(() => {
-    const loadProjects = async () => {
+    const loadData = async () => {
       try {
-        const response = await fetch('/api/projects')
-        if (response.ok) {
-          const data = await response.json()
-          setProjects(data)
+        const [projectsResponse, apiKeysResponse] = await Promise.all([
+          fetch('/api/projects'),
+          session?.user?.role === 'SUPERADMIN' ? fetch('/api/user/api-keys') : null
+        ])
+
+        if (projectsResponse.ok) {
+          const projectsData = await projectsResponse.json()
+          setProjects(projectsData)
+        }
+
+        if (apiKeysResponse?.ok) {
+          const apiKeysData = await apiKeysResponse.json()
+          setApiKeys(apiKeysData)
         }
       } catch (error) {
-        console.error('Fehler beim Laden der Projekte:', error)
+        console.error('Fehler beim Laden der Daten:', error)
+      } finally {
+        setLoading(false)
       }
     }
-    loadProjects()
-  }, [])
+    loadData()
+  }, [session?.user?.role])
+
+  // Füge neuen useEffect für automatische Abfrage hinzu
+  useEffect(() => {
+    if (session?.user?.role === 'SUPERADMIN') {
+      // Initial balance check
+      fetch('/api/user/api-keys/balance')
+
+      // Set up hourly balance check
+      const interval = setInterval(() => {
+        fetch('/api/user/api-keys/balance')
+      }, 60 * 60 * 1000) // 1 hour in milliseconds
+
+      return () => clearInterval(interval)
+    }
+  }, [session?.user?.role])
 
   const [formData, setFormData] = useState({
     name: session?.user?.name || '',
@@ -44,7 +91,7 @@ export default function ProfilePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       })
-      
+
       if (response.ok) {
         await updateSession()
         // Zeige Erfolgsmeldung
@@ -100,6 +147,46 @@ export default function ProfilePage() {
     }
   }
 
+  // API Key Management Functions
+  const addApiKey = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const response = await fetch('/api/user/api-keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newKey)
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setApiKeys(prev => [...prev, data])
+        setNewKey({ provider: 'openai', key: '' })
+      }
+    } catch (error) {
+      console.error('Error adding API key:', error)
+    }
+  }
+
+  const deleteApiKey = async (id: string) => {
+    if (!confirm('Sind Sie sicher, dass Sie diesen API-Schlüssel löschen möchten?')) return
+
+    try {
+      const response = await fetch(`/api/user/api-keys/${id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        setApiKeys(prev => prev.filter(key => key.id !== id))
+      }
+    } catch (error) {
+      console.error('Error deleting API key:', error)
+    }
+  }
+
+  const toggleKeyVisibility = (id: string) => {
+    setShowKeys(prev => ({ ...prev, [id]: !prev[id] }))
+  }
+
   // Gemeinsame Button-Styles
   const buttonStyle = `
     py-2 px-4 rounded-lg border border-[#C6A55C]/20 transition-colors
@@ -111,11 +198,20 @@ export default function ProfilePage() {
     bg-gradient-to-r from-[#85754E] via-[#C6A55C] to-[#85754E] text-black
   `
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-16 h-16 border-4 border-[#C6A55C] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
+
   return (
     <div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-8">
-        {/* Erste Spalte - Profil */}
-        <div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Erste Spalte - Profil & Menü */}
+        <div className="space-y-8">
+          {/* Profil Container */}
           <div className="bg-[#1A1A1A] rounded-lg border border-[#C6A55C]/20 p-6">
             <h2 className="text-xl font-semibold text-[#C6A55C] mb-6">Profil Einstellungen</h2>
             
@@ -141,7 +237,7 @@ export default function ProfilePage() {
               </div>
               
               <div className="space-y-4">
-                <label className="block text-sm font-medium text-[#C6A55C]">Passwort ändern</label>
+                <label className="block text-sm font-medium text-[#C6A55C]">Passwort ��ndern</label>
                 <input
                   type="password"
                   placeholder="Aktuelles Passwort"
@@ -173,10 +269,7 @@ export default function ProfilePage() {
               </button>
             </form>
           </div>
-        </div>
 
-        {/* Zweite Spalte - Menü & Display */}
-        <div className="space-y-8">
           {/* Menüposition Container */}
           <div className="bg-[#1A1A1A] rounded-lg border border-[#C6A55C]/20 p-6">
             <h2 className="text-xl font-semibold text-[#C6A55C] mb-2">Menüposition</h2>
@@ -248,7 +341,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Dritte Spalte - Startseite & Startprojekt */}
+        {/* Zweite Spalte - Startseite, Startprojekt & API Keys */}
         <div className="space-y-8">
           {/* Startseite Container */}
           <div className="bg-[#1A1A1A] rounded-lg border border-[#C6A55C]/20 p-6">
@@ -324,11 +417,132 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Weitere Einstellungen Container */}
-          <div className="bg-[#1A1A1A] rounded-lg border border-[#C6A55C]/20 p-6">
-            <h2 className="text-xl font-semibold text-[#C6A55C] mb-2">Weitere Einstellungen</h2>
-            <p className="text-gray-400">Hier können weitere Einstellungen hinzugefügt werden.</p>
-          </div>
+          {/* API Key Management Container (nur für Superadmin) */}
+          {session?.user?.role === 'SUPERADMIN' && (
+            <div className="bg-[#1A1A1A] rounded-lg border border-[#C6A55C]/20 p-6">
+              <h2 className="text-xl font-semibold text-[#C6A55C] mb-6">API-Schlüssel Verwaltung</h2>
+              <p className="text-gray-400 mb-4">Kontostände werden stündlich automatisch aktualisiert</p>
+
+              {/* API Keys List */}
+              <div className="space-y-4 mb-8">
+                {apiKeys.map(key => (
+                  <div key={key.id} className="flex items-center justify-between p-4 bg-[#111111] rounded-lg border border-[#C6A55C]/20">
+                    <div className="flex-1 pr-4">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium text-[#C6A55C]">{key.provider}</span>
+                        <a
+                          href={providerLinks[key.provider as keyof typeof providerLinks]}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      </div>
+                      <div className="mt-1 font-mono text-sm break-all">
+                        {showKeys[key.id] ? key.key : '•'.repeat(Math.min(key.key.length, 35))}
+                      </div>
+                      <div className="text-sm text-gray-400 mt-1">
+                        {key.lastUsed && (
+                          <span>Zuletzt verwendet: {new Date(key.lastUsed).toLocaleString()}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end space-y-2 min-w-[150px]">
+                      <div className="bg-[#1A1A1A] px-4 py-2 rounded-lg border border-[#C6A55C]/20">
+                        <div className="text-sm text-gray-400">Kontostand</div>
+                        <div className="text-lg font-medium text-[#C6A55C]">
+                          {key.balance !== null 
+                            ? `${key.provider === 'openai' ? '$' : '€'}${key.balance?.toFixed(2)}`
+                            : '---'}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => toggleKeyVisibility(key.id)}
+                          className="p-2 text-gray-400 hover:text-white transition-colors"
+                          title={showKeys[key.id] ? "Schlüssel verbergen" : "Schlüssel anzeigen"}
+                        >
+                          {showKeys[key.id] ? (
+                            <EyeOff className="w-5 h-5" />
+                          ) : (
+                            <Eye className="w-5 h-5" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => deleteApiKey(key.id)}
+                          className="p-2 text-red-500 hover:text-red-400 transition-colors"
+                          title="Schlüssel löschen"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add New API Key Form */}
+              <form onSubmit={addApiKey} className="space-y-4">
+                <div className="flex space-x-4">
+                  <div className="w-1/3">
+                    <label className="block text-sm font-medium text-[#C6A55C] mb-1">
+                      Provider
+                    </label>
+                    <select
+                      value={newKey.provider}
+                      onChange={(e) => setNewKey(prev => ({ ...prev, provider: e.target.value }))}
+                      className="w-full px-3 py-2 bg-[#111111] border border-[#C6A55C]/20 rounded-lg focus:outline-none focus:border-[#C6A55C]"
+                    >
+                      <option value="openai">OpenAI</option>
+                      <option value="anthropic">Anthropic</option>
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-[#C6A55C] mb-1">
+                      API-Schlüssel
+                    </label>
+                    <input
+                      type="text"
+                      value={newKey.key}
+                      onChange={(e) => setNewKey(prev => ({ ...prev, key: e.target.value }))}
+                      placeholder={newKey.provider === 'openai' ? 'sk-...' : 'sk-ant-...'}
+                      className="w-full px-3 py-2 bg-[#111111] border border-[#C6A55C]/20 rounded-lg focus:outline-none focus:border-[#C6A55C] font-mono text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-4">
+                    <a
+                      href={providerLinks[newKey.provider as keyof typeof providerLinks]}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 flex items-center"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-1" />
+                      API-Schlüssel erwerben
+                    </a>
+                    <a
+                      href={newKey.provider === 'openai' ? 'https://platform.openai.com/account/usage' : 'https://console.anthropic.com/account/billing'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 flex items-center"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-1" />
+                      Kontostand prüfen
+                    </a>
+                  </div>
+                  <button
+                    type="submit"
+                    className="flex items-center px-4 py-2 bg-gradient-to-r from-[#85754E] via-[#C6A55C] to-[#85754E] text-black rounded-lg hover:opacity-90 transition-opacity"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Hinzufügen
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
         </div>
       </div>
     </div>
